@@ -70,9 +70,11 @@ function renderUpdate(d) {
   // null until the server's first attempt ends; absent from older servers.
   const dt = q('srv-devtools');
   if (dt && d.devtools !== undefined) {
-    dt.className = 'pill ' + (d.devtools === 'closed' ? 'good' : d.devtools === 'open' ? 'bad' : 'idle');
+    // 'allowed' is a choice made in config.json, so it is not shown as a fault.
+    dt.className = 'pill ' + (d.devtools === 'closed' ? 'good' : d.devtools === 'open' ? 'bad'
+      : d.devtools === 'allowed' ? 'warn' : 'idle');
     dt.textContent = d.devtools === 'closed' ? t('server.devtools.closed', 'Closed to the network')
-      : d.devtools === 'open' ? t('server.devtools.open', 'Open to the network')
+      : d.devtools === 'open' || d.devtools === 'allowed' ? t('server.devtools.open', 'Open to the network')
       : d.devtools === 'off' ? t('server.devtools.off', 'Not running')
       : '\u2014';
   }

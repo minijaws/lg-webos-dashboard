@@ -89,6 +89,46 @@ test('the tools are found in /sbin too', function () {
   });
 });
 
+function runLeaveOpen() {
+  var held = null;
+  devtools.leaveOpen(function (h) { held = h; });
+  assert.ok(held, 'called back');
+  return held;
+}
+
+test('allowNetworkDebugger takes out a rule an earlier start left', function () {
+  tv([FLAG, '/usr/sbin/iptables', '/usr/sbin/ip6tables'], function () {
+    assert.deepEqual(runLeaveOpen(), []);
+    assert.deepEqual(calls, ['iptables -C', 'iptables -D', 'ip6tables -C', 'ip6tables -D']);
+    assert.equal(devtools.status(), 'allowed');
+  });
+});
+
+test('allowNetworkDebugger leaves a TV without the rule alone', function () {
+  tv([FLAG, '/usr/sbin/iptables'], function () {
+    answer = function () { return new Error('no rule'); };
+    assert.deepEqual(runLeaveOpen(), []);
+    assert.deepEqual(calls, ['iptables -C']);
+    assert.equal(devtools.status(), 'allowed');
+  });
+});
+
+test('a rule that cannot be taken out is reported as closed', function () {
+  tv([FLAG, '/usr/sbin/iptables'], function () {
+    answer = function (file, args) { return args[0] === '-D' ? new Error('not permitted') : null; };
+    assert.deepEqual(runLeaveOpen(), ['/usr/sbin/iptables']);
+    assert.equal(devtools.status(), 'closed');
+  });
+});
+
+test('allowNetworkDebugger without Developer Mode touches nothing', function () {
+  tv(['/usr/sbin/iptables'], function () {
+    assert.deepEqual(runLeaveOpen(), []);
+    assert.deepEqual(calls, []);
+    assert.equal(devtools.status(), 'off');
+  });
+});
+
 test('the rule drops 9998 from everything but loopback', function () {
   assert.equal(devtools.RULE.join(' '), 'INPUT -p tcp --dport 9998 ! -i lo -j DROP');
 });

@@ -13,6 +13,9 @@
  * TV that loses root reverts to stock behaviour. ssh -L 9998:localhost:9998
  * still reaches the debugger.
  *
+ * allowNetworkDebugger in config.json leaves the port open for ares-inspect.
+ * The rule outlives a server restart, so that start takes it out again.
+ *
  * Strict ES5 for Node 0.12.2 on webOS 4.
  */
 var fs = require('fs');
@@ -23,8 +26,9 @@ var RULE = ['INPUT', '-p', 'tcp', '--dport', '9998', '!', '-i', 'lo', '-j', 'DRO
 var DIRS = ['/usr/sbin/', '/sbin/'];
 
 // For the dashboard: null until the first attempt ends, then 'closed', 'open'
-// (Developer Mode is on and the rule could not be added) or 'off' (Developer
-// Mode is off, so webOS does not open the port).
+// (Developer Mode is on and the rule could not be added), 'allowed' (left open
+// by allowNetworkDebugger) or 'off' (Developer Mode is off, so webOS does not
+// open the port).
 var state = null;
 
 function findTool(name) {
@@ -64,6 +68,34 @@ function blockFromNetwork(cb) {
   })(0);
 }
 
+// Calls back with whether the rule is gone; a missing rule counts as gone.
+function unblockWith(tool, cb) {
+  execFile(tool, ['-C'].concat(RULE), { timeout: 5000 }, function (err) {
+    if (err) return cb(true);
+    execFile(tool, ['-D'].concat(RULE), { timeout: 5000 }, function (err2) { cb(!err2); });
+  });
+}
+
+// Calls back with the tools that still hold the rule.
+function leaveOpen(cb) {
+  cb = cb || function () {};
+  if (!fs.existsSync(DEVMODE_FLAG)) { state = 'off'; return cb([]); }
+  var tools = ['iptables', 'ip6tables'].map(findTool).filter(Boolean);
+  var held = [];
+  (function next(i) {
+    if (i >= tools.length) {
+      state = held.length ? 'closed' : 'allowed';
+      if (held.length) console.error('devtools: could not reopen port 9998 to the network');
+      else console.log('devtools: port 9998 left open to the network (allowNetworkDebugger)');
+      return cb(held);
+    }
+    unblockWith(tools[i], function (gone) {
+      if (!gone) held.push(tools[i]);
+      next(i + 1);
+    });
+  })(0);
+}
+
 function status() { return state; }
 
-module.exports = { blockFromNetwork: blockFromNetwork, status: status, RULE: RULE };
+module.exports = { blockFromNetwork: blockFromNetwork, leaveOpen: leaveOpen, status: status, RULE: RULE };

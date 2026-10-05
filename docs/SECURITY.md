@@ -87,7 +87,9 @@ it before exposing it more widely.
   reachable over ssh with `ssh -L 9998:localhost:9998 root@<tv-ip>` and
   `http://localhost:9998`. Where the kernel has no `ip6_tables` (a C1, webOS 6)
   the rule covers IPv4 only, which leaves the port open on any IPv6 address the
-  TV has.
+  TV has. `{ "allowNetworkDebugger": true }` in `config.json` leaves the port
+  open for `ares-inspect`, and the server takes out a rule left by an earlier
+  start. Uninstalling from the Homebrew Channel removes the rule too.
 
 ---
 
