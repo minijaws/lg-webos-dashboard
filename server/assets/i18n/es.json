@@ -2043,6 +2043,30 @@
   "text": "Comprobar ahora",
   "from": "Check now"
  },
+ "server.devtools": {
+  "text": "Depurador de apps web",
+  "from": "Web app debugger"
+ },
+ "server.devtools.closed": {
+  "text": "Cerrado a la red",
+  "from": "Closed to the network"
+ },
+ "server.devtools.desc": {
+  "text": "El modo de desarrollador, que una TV con root mantiene activado, permite que cualquiera en la red ejecute código dentro de las apps Homebrew a través de él. Glasshouse lo cierra a la red cada vez que se inicia. Sigue accesible por ssh.",
+  "from": "Developer Mode, which a rooted TV keeps on, lets anyone on the network run code inside Homebrew apps through it. Glasshouse closes it to the network each time it starts. It stays reachable over ssh."
+ },
+ "server.devtools.off": {
+  "text": "No está en ejecución",
+  "from": "Not running"
+ },
+ "server.devtools.open": {
+  "text": "Abierto a la red",
+  "from": "Open to the network"
+ },
+ "server.devtools.title": {
+  "text": "DevTools en el puerto 9998",
+  "from": "DevTools on port 9998"
+ },
  "server.experimental": {
   "text": "Funciones experimentales",
   "from": "Experimental features"

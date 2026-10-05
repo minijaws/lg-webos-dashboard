@@ -11,6 +11,7 @@ var say = require('./say');
 var msg = say.msg;
 var ha = require('./ha');
 var fetchLib = require('./fetch');
+var devtools = require('./devtools');
 
 var HA_CATEGORIES = ha.HA_CATEGORIES;
 var HA_ENTITIES = ha.HA_ENTITIES;
@@ -540,10 +541,12 @@ function loadUI() {
 }
 
 // ---------------------------------------------------------------- server
-// The TV's own software updates sit beside Glasshouse's in both dashboards.
+// The TV's own software updates sit beside Glasshouse's in both dashboards,
+// with whether the web app debugger is closed to the network.
 function updateSummary() {
   var s = updaterModule.updateSummary();
   s.tvUpdatesBlocked = privacyModule.tvUpdatesBlocked();
+  s.devtools = devtools.status();
   s.allowTileHiding = !!(appsModule && appsModule.tileHidingAllowed && appsModule.tileHidingAllowed());
   s.allowOnWebos10 = !!(screensaversModule && screensaversModule.allowedAnyway && screensaversModule.allowedAnyway());
   s.isWebos10 = !!(screensaversModule && screensaversModule.slowSwitch && screensaversModule.slowSwitch());

@@ -22,6 +22,11 @@ var DEVMODE_FLAG = '/var/luna/preferences/devmode_enabled';
 var RULE = ['INPUT', '-p', 'tcp', '--dport', '9998', '!', '-i', 'lo', '-j', 'DROP'];
 var DIRS = ['/usr/sbin/', '/sbin/'];
 
+// For the dashboard: null until the first attempt ends, then 'closed', 'open'
+// (Developer Mode is on and the rule could not be added) or 'off' (Developer
+// Mode is off, so webOS does not open the port).
+var state = null;
+
 function findTool(name) {
   for (var i = 0; i < DIRS.length; i++) {
     if (fs.existsSync(DIRS[i] + name)) return DIRS[i] + name;
@@ -42,11 +47,12 @@ function blockWith(tool, cb) {
 // Calls back with the tools that now hold the rule.
 function blockFromNetwork(cb) {
   cb = cb || function () {};
-  if (!fs.existsSync(DEVMODE_FLAG)) return cb([]);
+  if (!fs.existsSync(DEVMODE_FLAG)) { state = 'off'; return cb([]); }
   var tools = ['iptables', 'ip6tables'].map(findTool).filter(Boolean);
   var held = [];
   (function next(i) {
     if (i >= tools.length) {
+      state = held.length ? 'closed' : 'open';
       if (!held.length) console.error('devtools: could not close port 9998 to the network');
       else console.log('devtools: port 9998 answers on the TV only');
       return cb(held);
@@ -58,4 +64,6 @@ function blockFromNetwork(cb) {
   })(0);
 }
 
-module.exports = { blockFromNetwork: blockFromNetwork, RULE: RULE };
+function status() { return state; }
+
+module.exports = { blockFromNetwork: blockFromNetwork, status: status, RULE: RULE };

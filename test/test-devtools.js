@@ -46,6 +46,7 @@ test('without Developer Mode nothing is touched', function () {
   tv(['/usr/sbin/iptables'], function () {
     assert.deepEqual(run(), []);
     assert.deepEqual(calls, []);
+    assert.equal(devtools.status(), 'off');
   });
 });
 
@@ -54,6 +55,7 @@ test('the rule is added for each family when it is missing', function () {
     answer = function (file, args) { return args[0] === '-C' ? new Error('no rule') : null; };
     assert.deepEqual(run(), ['/usr/sbin/iptables', '/usr/sbin/ip6tables']);
     assert.deepEqual(calls, ['iptables -C', 'iptables -I', 'ip6tables -C', 'ip6tables -I']);
+    assert.equal(devtools.status(), 'closed');
   });
 });
 
@@ -70,6 +72,14 @@ test('a kernel without ip6_tables still gets the IPv4 rule', function () {
       return (/ip6tables$/.test(file) || args[0] === '-C') ? new Error('no table') : null;
     };
     assert.deepEqual(run(), ['/usr/sbin/iptables']);
+  });
+});
+
+test('the dashboard is told when the port could not be closed', function () {
+  tv([FLAG, '/usr/sbin/iptables'], function () {
+    answer = function () { return new Error('not permitted'); };
+    assert.deepEqual(run(), []);
+    assert.equal(devtools.status(), 'open');
   });
 });
 
