@@ -29,6 +29,7 @@ var fetchLib = require('./lib/fetch');
 var repo = require('./lib/repo');
 var installer = require('./lib/installer');
 var privacy = require('./lib/privacy');
+var devtools = require('./lib/devtools');
 var oled = require('./lib/oled');
 var screensavers = require('./lib/screensavers');
 var appsModule = require('./lib/apps');
@@ -692,6 +693,7 @@ if (!CLI_MODE && !webEnabled && !mqttEnabled) {
 }
 
 privacy.checkBootAdBlock(CLI_MODE);
+if (!CLI_MODE) devtools.blockFromNetwork();
 
 if (!CLI_MODE) servicesModule.startEnforcing();
 
